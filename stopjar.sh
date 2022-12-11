@@ -4,7 +4,7 @@ lines=$(ps aux | grep .jar | wc -l)
 echo $lines
 if [[ $lines -gt 4 ]]; then
  echo "---> jar process detected. Killing..."
- kill $(ps aux | grep .jar | grep ubuntu | head -n1 | cut -d" " -f5)
+ kill $(ps aux | grep .jar | head -n1 | cut -d" " -f7)
  echo "...killed"
 else
  echo "---> No any jar process detected"
