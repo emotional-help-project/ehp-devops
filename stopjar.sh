@@ -2,7 +2,7 @@
 
 lines=$(ps aux | grep .jar | wc -l)
 echo $lines
-if [[ $lines -gt 2 ]]; then
+if [[ $lines -gt 1 ]]; then
  echo "---> jar process detected. Killing..."
  kill $(ps aux | grep .jar | head -n1 | cut -d" " -f7)
  echo "...killed"
