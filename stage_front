@@ -1,0 +1,73 @@
+pipeline {
+    agent any
+    
+    environment {
+        IP_LOCAL = '192.168.1.61'
+        
+    }
+    
+    stages {
+        stage('git') {
+            steps {
+                   git credentialsId: '8d11d527-65fc-43a0-9997-de310730372a', url: 'git@github.com:emotional-help-project/ehp-frontend.git', branch: 'main'
+                   
+                
+            }
+        }
+        
+      
+        stage('deploy') {
+            steps {
+                echo "deploy"
+                
+                sshagent(['8d11d527-65fc-43a0-9997-de310730372a']) {
+                    sh "pwd"    // some block 
+                    sh 'rm -rf /opt/front_ui/*'
+                    //sh 'ssh sirius@192.168.1.61 "kill $(ps aux | grep .jar | grep sirius | head -n1 | cut -d" " -f5)"' // ATTENTION FOR THIS !!! First run do with comented this string
+                    sh 'rsync -az ~/workspace/EAH_main_branch_deploying_front/* sirius@192.168.1.61:/opt/front_ui/'
+                   
+          //          sh 'rsync startnpm.sh sirius@192.168.1.61:/tmp/'
+          //          sh 'ssh sirius@192.168.1.61 "chmod +x /tmp/startnpm.sh && /tmp/startnpm.sh"'
+                   
+                    //sh 'ssh sirius@192.168.1.61 "nvm install v18.10"'
+                    //sh 'ssh sirius@192.168.1.61 "npm --prefix /opt/front_ui/ start package.json"'
+                    sh 'echo done'
+                    
+                }    
+            }
+        }
+        stage('Get support scripts') {
+           steps {
+                sh 'echo "get support scripts"'
+                git credentialsId: '8d11d527-65fc-43a0-9997-de310730372a', url: 'git@github.com:emotional-help-project/ehp-devops.git', branch: 'main'
+            }
+        }
+        stage('deploy1') {
+            steps {
+                echo "deploy"
+                
+                sshagent(['8d11d527-65fc-43a0-9997-de310730372a']) {
+         //           sh "pwd"    // some block 
+         //           sh 'rm -rf /opt/front_ui/*'
+                    //sh 'ssh sirius@192.168.1.61 "kill $(ps aux | grep .jar | grep sirius | head -n1 | cut -d" " -f5)"' // ATTENTION FOR THIS !!! First run do with comented this string
+         //           sh 'rsync -az ~/workspace/EAH_main_branch_deploying_front/* sirius@192.168.1.61:/opt/front_ui/'
+                   
+                   // sh 'rsync startnpm.sh sirius@192.168.1.61:/tmp/'
+                   // sh 'ssh sirius@192.168.1.61 "chmod +x /tmp/startnpm.sh && /tmp/startnpm.sh"'
+                    
+                    //  sh 'ssh -o "StrictHostKeyChecking no" sirius@${IP_LOCAL} "rm -rf /opt/front_ui/*"'
+                    //  sh 'rsync -az ~/workspace/EAH_main_branch_deploying_front/* sirius@${IP_LOCAL}:/opt/front_ui/'                    
+                      sh 'ssh sirius@${IP_LOCAL} "pm2 kill && cd /opt/front_ui && npm install --legacy-peer-deps"'
+                  //    sh 'ssh sirius@${IP_LOCAL} "cd /opt/front_ui && pm2 --name EHP start npm -- start"'
+                    
+                    //sh 'ssh sirius@192.168.1.61 "nvm install v18.10"'
+                    //sh 'ssh sirius@192.168.1.61 "npm --prefix /opt/front_ui/ start package.json"'
+                    sh 'echo done'
+                    //  sh 'ssh sirius@192.168.1.61 "chmod 770 /opt/tomcat/webapps/*.jar" '
+                    //  sh 'ssh sirius@192.168.1.61 "cp -r /tmp/ /opt/tomcat/apache-tomcat-8.5.83/webapps/" '
+                }    
+            }
+        }
+
+    }
+}
