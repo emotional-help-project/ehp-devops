@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+    environment { 
+        PATH = "/opt/apache-maven-3.6.3/bin:$PATH"
+    }
+    stages {
+        stage('git') {
+            steps {
+                 sh 'echo "main data"'
+                 git credentialsId: '8d11d527-65fc-43a0-9997-de310730372a', url: 'git@github.com:emotional-help-project/ehp-backend.git', branch: 'develop'
+            }
+        }
+        stage('build') {
+            tools {
+                   jdk "Java17"
+                }
+            steps {
+               echo "build"
+               sh "mvn clean install -Dmaven.test.skip=true"
+                
+            }
+        }
+        stage('get support scripts') {
+            steps {
+                 sh 'echo "get support scripts"'
+                 git credentialsId: '8d11d527-65fc-43a0-9997-de310730372a', url: 'git@github.com:emotional-help-project/ehp-devops.git', branch: 'main'
+            }
+        }
+        
+        stage('deploy') {
+            steps {
+                echo "deploy"
+                
+                sshagent(['8d11d527-65fc-43a0-9997-de310730372a']) {
+                  
+                    sh 'rm -rf /opt/backend/* && rm -rf /opt/stopjar.sh'
+                    sh 'rsync target/*.jar sirius@192.168.1.61:/opt/backend/'
+                    sh 'rsync stopjar.sh sirius@192.168.1.61:/opt/'
+                    sh 'ssh sirius@192.168.1.61 "chmod +x /opt/stopjar.sh"'
+                    sh 'ssh sirius@192.168.1.61 "/opt/stopjar.sh"' // Stopping jar and launch new one
+                  
+                    sh 'echo done'
+                  
+                }    
+            }
+        }
+    }
+}
