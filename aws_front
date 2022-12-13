@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+    
+    environment {
+        IP_AWS = '34.212.192.239'
+        
+    }
+    
+    stages {
+        stage('git') {
+            steps {
+                   git credentialsId: '8d11d527-65fc-43a0-9997-de310730372a', url: 'git@github.com:emotional-help-project/ehp-frontend.git', branch: 'main'
+                   
+                
+            }
+        }
+        
+      
+        stage('deploy') {
+            steps {
+                echo "deploy"
+                    sh 'ssh -o "StrictHostKeyChecking no" ubuntu@${IP_AWS} "rm -rf /opt/front_ui/*"'
+                    sh 'rsync -az ~/workspace/AWS_Frontend/* ubuntu@${IP_AWS}:/opt/front_ui/'
+                    sh 'echo done'
+                   
+            }
+        }
+        stage('stopping old proccess') {
+           steps {
+                sh 'echo "stopping old proccess"'
+                sh 'ssh ubuntu@${IP_AWS} "pm2 kill"'
+            }
+        }
+        stage('Launch NPM') {
+            steps {
+                sh 'ssh ubuntu@${IP_AWS} "cd /opt/front_ui && npm install --legacy-peer-deps"'
+                sh 'ssh ubuntu@${IP_AWS} "cd /opt/front_ui && pm2 --name EHP start npm -- start"'
+                
+                
+                
+            }
+        }
+
+    }
+}
